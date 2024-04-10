@@ -1,0 +1,84 @@
+import math
+
+def random():
+
+
+def generate_random_initial_route(numLocation):
+    
+    
+    return random.sample(range(numLocation), (numLocation))
+
+def explore_neighbouring_solution(currentPosition):
+    
+
+
+    new_route = currentPosition[:]
+    i, j = random.sample(range(len(currentPosition)), 2)
+    new_route[i], new_route[j] = new_route[j], new_route[i]
+    return new_route
+
+class Town:
+    def __init__(self, name):
+        self.name = name
+
+def create_location_matrix():
+    
+
+
+    places = ["Dorado Park", "Khomasdal", "Katutura", "Eros", "Klein Windhoek"]
+    distances = [
+        [0, 7, 20, 15, 12],
+        [10, 0, 6, 14, 18],
+        [20, 6, 0, 15, 30],
+        [15, 14, 25, 0, 2],
+        [12, 18, 30, 2, 0]
+    ]
+    return places, distances
+
+def total_distance(route, distances):
+    
+
+    total = 0
+    for i in range(len(route) - 1):
+        total += distances[route[i]][route[i+1]]
+    total += distances[route[-1]][route[0]]  # Add distance back to starting city
+    return total
+
+def hill_climbing(initial_route, distances):
+    
+
+    current_route = initial_route
+    current_distance = total_distance(current_route, distances)
+    
+    improved = True
+    while improved:
+        improved = False
+        for i in range(len(current_route)):
+            for j in range(i + 1, len(current_route)):
+                new_route = current_route[:]  # Copy the route
+                new_route[i], new_route[j] = new_route[j], new_route[i]  # Swap cities
+                new_distance = total_distance(new_route, distances)
+                
+                if new_distance < current_distance:
+                    current_route = new_route
+                    current_distance = new_distance
+                    improved = True
+                    break
+            if improved:
+                break
+    
+    return current_route, current_distance
+
+
+places, distances = create_location_matrix()
+
+
+initial_route = list(range(len(places)))  
+
+
+best_route, best_distance = hill_climbing(initial_route, distances)
+
+print("Quickest Route:", [places[i] for i in best_route])
+print("Total Distance:", best_distance)
+
+
