@@ -1,80 +1,48 @@
-import java.awt.Point;
+class RobotEnvironment:
+    def __init__(self, numRows, numCols):
+        self.numRows = numRows
+        self.numCols = numCols
+        self.gridMap = [[0] * numCols for _ in range(numRows)]
+        self.robotPosition = [0, 0]  # Initialize the robot's position at the top-left corner
 
-public class RobotEnvironment {
+    def update_robot_position(self, row, col):
+        if self.is_valid_position(row, col):
+            self.robotPosition = [row, col]
+        else:
+            print("Invalid position!")
 
-    // Define the size of the grid-based map
-    private int numRows;
-    private int numCols;
+    def is_valid_position(self, row, col):
+        return 0 <= row < self.numRows and 0 <= col < self.numCols
 
-    // Define the grid-based map representing the environment
-    private int[][] gridMap;
+    def move_robot(self, action):
+        newRow, newCol = self.robotPosition
 
-    // Define the robot's current position
-    private Point robotPosition;
+        if action == "forward":
+            newRow += 1
+        elif action == "backward":
+            newRow -= 1
+        elif action == "left":
+            newCol -= 1
+        elif action == "right":
+            newCol += 1
+        else:
+            print("Invalid action!")
+            return
 
-    // Constructor to initialize the environment
-    public RobotEnvironment(int numRows, int numCols) {
-        this.numRows = numRows;
-        this.numCols = numCols;
-        this.gridMap = new int[numRows][numCols];
-        this.robotPosition = new Point(0, 0); // Initialize the robot's position at the top-left corner
-    }
+        if self.is_valid_position(newRow, newCol):
+            self.update_robot_position(newRow, newCol)
+            print(f"Robot moved to: ({newRow}, {newCol})")
+        else:
+            print("Cannot move in that direction!")
 
-    // Method to update the robot's position
-    public void updateRobotPosition(int row, int col) {
-        if (isValidPosition(row, col)) {
-            robotPosition.setLocation(row, col);
-        } else {
-            System.out.println("Invalid position!");
-        }
-    }
 
-    // Method to check if a position is valid within the grid
-    private boolean isValidPosition(int row, int col) {
-        return row >= 0 && row < numRows && col >= 0 && col < numCols;
-    }
+# Example usage
+if __name__ == "__main__":
+    numRows = 10
+    numCols = 10
 
-    // Method to perform a move action: forward, backward, left, right
-    public void moveRobot(String action) {
-        int newRow = robotPosition.x;
-        int newCol = robotPosition.y;
-
-        switch (action) {
-            case "forward":
-                newRow--;
-                break;
-            case "backward":
-                newRow++;
-                break;
-            case "left":
-                newCol--;
-                break;
-            case "right":
-                newCol++;
-                break;
-            default:
-                System.out.println("Invalid action!");
-                return;
-        }
-
-        // Check if the new position is valid and update the robot's position
-        if (isValidPosition(newRow, newCol)) {
-            updateRobotPosition(newRow, newCol);
-            System.out.println("Robot moved to: (" + newRow + ", " + newCol + ")");
-        } else {
-            System.out.println("Cannot move in that direction!");
-        }
-    }
-
-    // Example usage
-    public static void main(String[] args) {
-        int numRows = 10;
-        int numCols = 10;
-
-        RobotEnvironment environment = new RobotEnvironment(numRows, numCols);
-        environment.moveRobot("forward");
-        environment.moveRobot("right");
-        environment.moveRobot("backward");
-        environment.moveRobot("left");
-    }
-}
+    environment = RobotEnvironment(numRows, numCols)
+    environment.move_robot("forward")
+    environment.move_robot("right")
+    environment.move_robot("backward")
+    environment.move_robot("left")
