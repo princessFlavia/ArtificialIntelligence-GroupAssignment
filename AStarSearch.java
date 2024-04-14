@@ -1,158 +1,92 @@
-import java.awt.Point;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.PriorityQueue;
+class AStarSearch:
+    def __init__(self, grid_map: List[List[int]], start_position: Tuple[int, int], target_position: Tuple[int, int]):
+        self.grid_map = grid_map
+        self.num_rows = len(grid_map)
+        self.num_cols = len(grid_map[0])
+        self.start_position = start_position
+        self.target_position = target_position
 
-public class AStarSearch {
+    class Node:
+        def __init__(self, position: Tuple[int, int], g_score: float, f_score: float, parent):
+            self.position = position
+            self.g_score = g_score
+            self.f_score = f_score
+            self.parent = parent
 
-    // Define the grid-based map representing the environment
-    private int[][] gridMap;
+        def __lt__(self, other):
+            return self.f_score < other.f_score
 
-    // Define the size of the grid-based map
-    private int numRows;
-    private int numCols;
+    def find_path(self) -> List[Tuple[int, int]]:
+        closed_set = set()
+        open_set = PriorityQueue()
+        start_node = self.Node(self.start_position, 0, self.heuristic(self.start_position), None)
+        open_set.put(start_node)
 
-    // Define the robot's starting position and target position
-    private Point startPosition;
-    private Point targetPosition;
+        while not open_set.empty():
+            current = open_set.get()
 
-    // Constructor to initialize the environment
-    public AStarSearch(int[][] gridMap, Point startPosition, Point targetPosition) {
-        this.gridMap = gridMap;
-        this.numRows = gridMap.length;
-        this.numCols = gridMap[0].length;
-        this.startPosition = startPosition;
-        this.targetPosition = targetPosition;
-    }
+            if current.position == self.target_position:
+                return self.reconstruct_path(current)
 
-    // Define a node class for A* search
-    private class Node {
-        Point position;
-        double gScore;
-        double fScore;
-        Node parent;
+            closed_set.add(current.position)
 
-        public Node(Point position, double gScore, double fScore, Node parent) {
-            this.position = position;
-            this.gScore = gScore;
-            this.fScore = fScore;
-            this.parent = parent;
-        }
-    }
+            for neighbor in self.generate_neighbors(current.position):
+                if neighbor in closed_set:
+                    continue
 
-    // Implement A* search algorithm
-    public ArrayList<Point> findPath() {
-        // Initialize open and closed sets
-        HashSet<Point> closedSet = new HashSet<>();
-        PriorityQueue<Node> openSet = new PriorityQueue<>(Comparator.comparingDouble(node -> node.fScore));
+                tentative_g_score = current.g_score + self.cost(current.position, neighbor)
+                neighbor_node = self.Node(neighbor, tentative_g_score, tentative_g_score + self.heuristic(neighbor), current)
+                open_set.put(neighbor_node)
 
-        // Initialize the start node
-        Node startNode = new Node(startPosition, 0, heuristic(startPosition), null);
-        openSet.add(startNode);
+        return []
 
-        while (!openSet.isEmpty()) {
-            // Get the node with the lowest fScore from the open set
-            Node current = openSet.poll();
+    def reconstruct_path(self, current: 'Node') -> List[Tuple[int, int]]:
+        path = []
+        while current is not None:
+            path.insert(0, current.position)
+            current = current.parent
+        return path
 
-            // Check if the current node is the target position
-            if (current.position.equals(targetPosition)) {
-                // Reconstruct the path
-                return reconstructPath(current);
-            }
+    def generate_neighbors(self, position: Tuple[int, int]) -> List[Tuple[int, int]]:
+        neighbors = []
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
 
-            // Add the current node to the closed set
-            closedSet.add(current.position);
+        for dx, dy in directions:
+            new_row, new_col = position[0] + dx, position[1] + dy
+            if self.is_valid_position(new_row, new_col):
+                neighbors.append((new_row, new_col))
 
-            // Generate neighbors of the current node
-            ArrayList<Point> neighbors = generateNeighbors(current.position);
+        return neighbors
 
-            // Iterate through neighbors
-            for (Point neighbor : neighbors) {
-                if (closedSet.contains(neighbor)) {
-                    continue; // Skip if already evaluated
-                }
+    def is_valid_position(self, row: int, col: int) -> bool:
+        return 0 <= row < self.num_rows and 0 <= col < self.num_cols and self.grid_map[row][col] == 0
 
-                // Calculate tentative gScore
-                double tentativeGScore = current.gScore + cost(current.position, neighbor);
+    def cost(self, current: Tuple[int, int], next: Tuple[int, int]) -> float:
+        return 1.0
 
-                // Check if neighbor is not in the open set or has a lower gScore
-                Node neighborNode = new Node(neighbor, tentativeGScore, tentativeGScore + heuristic(neighbor), current);
-                if (!openSet.contains(neighborNode) || tentativeGScore < neighborNode.gScore) {
-                    openSet.add(neighborNode);
-                }
-            }
-        }
+    def heuristic(self, position: Tuple[int, int]) -> float:
+        return abs(position[0] - self.target_position[0]) + abs(position[1] - self.target_position[1])
 
-        // If no path found, return null
-        return null;
-    }
 
-    // Helper method to reconstruct the path from the current node to the start node
-    private ArrayList<Point> reconstructPath(Node current) {
-        ArrayList<Point> path = new ArrayList<>();
-        while (current != null) {
-            path.add(0, current.position);
-            current = current.parent;
-        }
-        return path;
-    }
+# Example usage
+if __name__ == "__main__":
+    grid_map = [
+        [0, 0, 1, 0, 0],
+        [0, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 0],
+        [0, 0, 1, 0, 0]
+    ]
 
-    // Method to generate neighbors of a given position
-    private ArrayList<Point> generateNeighbors(Point position) {
-        ArrayList<Point> neighbors = new ArrayList<>();
-        int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; // Up, Down, Left, Right
+    start_position = (0, 0)
+    target_position = (4, 4)
 
-        for (int[] dir : directions) {
-            int newRow = position.x + dir[0];
-            int newCol = position.y + dir[1];
-            if (isValidPosition(newRow, newCol)) {
-                neighbors.add(new Point(newRow, newCol));
-            }
-        }
+    astar = AStarSearch(grid_map, start_position, target_position)
+    path = astar.find_path()
 
-        return neighbors;
-    }
-
-    // Method to check if a position is valid within the grid
-    private boolean isValidPosition(int row, int col) {
-        return row >= 0 && row < numRows && col >= 0 && col < numCols && gridMap[row][col] == 0;
-    }
-
-    // Define the cost function (unit cost for each movement)
-    private double cost(Point current, Point next) {
-        return 1.0;
-    }
-
-    // Define the heuristic function (Manhattan distance)
-    private double heuristic(Point position) {
-        return Math.abs(position.x - targetPosition.x) + Math.abs(position.y - targetPosition.y);
-    }
-
-    // Main method for testing
-    public static void main(String[] args) {
-        // Example grid map with obstacles (0 for free cell, 1 for obstacle)
-        int[][] gridMap = {
-                {0, 0, 1, 0, 0},
-                {0, 1, 1, 1, 0},
-                {0, 0, 0, 0, 0},
-                {0, 1, 1, 1, 0},
-                {0, 0, 1, 0, 0}
-        };
-
-        Point startPosition = new Point(0, 0);
-        Point targetPosition = new Point(4, 4);
-
-        AStarSearch astar = new AStarSearch(gridMap, startPosition, targetPosition);
-        ArrayList<Point> path = astar.findPath();
-
-        if (path != null) {
-            System.out.println("Path found:");
-            for (Point point : path) {
-                System.out.println("(" + point.x + ", " + point.y + ")");
-            }
-        } else {
-            System.out.println("No path found!");
-        }
-    }
-}
+    if path:
+        print("Path found:")
+        for point in path:
+            print(point)
+    else:
+        print("No path found!")
