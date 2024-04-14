@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 class Heuristic:
     def cost(self, current: Tuple[int, int], next: Tuple[int, int], terrain_map: List[List[float]]) -> float:
         return 1.0
